@@ -1,2 +1,4 @@
 nodemodules/
 .env
+.env.*
+
