@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const appointmentController = require('../controllers/appointmentcontroller');
+const appointmentController = require('../controllers/appointmentController');
 const protect = require('../middlewares/authmiddleware');
 
 router.post('/', protect, appointmentController.createAppointment);
 router.get('/', protect, appointmentController.getAppointments);
+router.get('/:appointmentId', protect, appointmentController.getAppointmentById);
+router.patch('/:appointmentId/status', protect, appointmentController.updateStatus);
+router.post('/:appointmentId/cancel', protect, appointmentController.cancelAppointment);
+router.patch('/:appointmentId/reschedule', protect, appointmentController.rescheduleAppointment);
+router.post('/:appointmentId/notes', protect, appointmentController.addNotes);
 
 module.exports = router;

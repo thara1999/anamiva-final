@@ -10,27 +10,21 @@ const {
 } = require("./env");
 
 /* =========================
-   REDIS CLIENT
+   REDIS
 ========================= */
-const client = redis.createClient({
-  url: REDIS_URL
-});
+const client = redis.createClient({ url: REDIS_URL });
 
-client.on("error", (err) => {
-  console.error("❌ Redis Error:", err.message);
+client.on("error", err => {
+  console.error("Redis Error:", err.message);
 });
 
 (async () => {
-  try {
-    await client.connect();
-    console.log("✅ Redis connected");
-  } catch (err) {
-    console.error("⚠️ Redis not connected, OTP will fail");
-  }
+  await client.connect();
+  console.log("Redis connected");
 })();
 
 /* =========================
-   TWILIO CLIENT
+   TWILIO
 ========================= */
 const twilioClient = twilio(
   TWILIO_ACCOUNT_SID,
@@ -53,18 +47,21 @@ const saveOTP = async (phone, otp) => {
 };
 
 const verifyOTP = async (phone, otp) => {
-  const savedOTP = await client.get(`otp:${phone}`);
-  return savedOTP === otp;
+  const saved = await client.get(`otp:${phone}`);
+  if (saved === otp) {
+    await client.del(`otp:${phone}`);
+    return true;
+  }
+  return false;
 };
 
-const sendOTP = async (phone) => {
+const sendOTP = async phone => {
   const otp = generateOTP();
-
   await saveOTP(phone, otp);
 
   await twilioClient.messages.create({
+    from: TWILIO_PHONE,
     to: phone,
-    from: TWILIO_PHONE, // ✅ FIXED
     body: `Your MedApp OTP is ${otp}`
   });
 
@@ -72,8 +69,6 @@ const sendOTP = async (phone) => {
 };
 
 module.exports = {
-  generateOTP,
-  saveOTP,
-  verifyOTP,
-  sendOTP
+  sendOTP,
+  verifyOTP
 };
