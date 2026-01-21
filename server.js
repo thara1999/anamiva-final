@@ -34,3 +34,4 @@ initSocket(server);
 server.listen(PORT, () => {
   console.log(`🚀 MedApp server running on port ${PORT}`);
 });
+  

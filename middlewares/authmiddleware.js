@@ -3,21 +3,33 @@ const { JWT_SECRET } = require("../config/env");
 
 module.exports = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token)
-      return res.status(401).json({ message: "Unauthorized" });
+    const authHeader = req.headers.authorization;
 
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // TEMP TOKEN
+    // TEMP TOKEN (OTP FLOW)
     if (decoded.isTemp) {
-      req.user = { phone: decoded.phone };
-    } else {
-      req.user = decoded;
+      req.user = {
+        phone: decoded.phone,
+        isTemp: true
+      };
+    } 
+    // NORMAL TOKEN
+    else {
+      req.user = {
+        id: decoded.id,
+        role: decoded.role,
+        doctorInfo: decoded.doctorInfo || null
+      };
     }
 
     next();
   } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };

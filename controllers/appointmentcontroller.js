@@ -32,33 +32,26 @@ exports.createAppointment = async (req, res) => {
 ========================= */
 exports.getAppointments = async (req, res) => {
   try {
-    const { status, startDate, endDate, page = 1, limit = 20 } = req.query;
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
 
-    const filter = {};
-
-    if (req.user.role === 'patient') filter.patientId = req.user.id;
-    if (req.user.role === 'doctor') filter.doctorId = req.user.id;
-
-    if (status) filter.status = status;
-    if (startDate || endDate) filter.date = {};
-    if (startDate) filter.date.$gte = new Date(startDate);
-    if (endDate) filter.date.$lte = new Date(endDate);
-
-    const total = await Appointment.countDocuments(filter);
-    const appointments = await Appointment.find(filter)
-      .populate('doctorId')
-      .populate('patientId')
-      .skip((page - 1) * limit)
-      .limit(Number(limit))
-      .sort({ date: 1, time: 1 });
+    const appointments = await Appointment.find({
+      doctorId: req.user.id
+    });
 
     res.json({
       success: true,
       appointments,
-      pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / limit) }
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: appointments.length,
+        pages: appointments.length ? 1 : 0
+      }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
