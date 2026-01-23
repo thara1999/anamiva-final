@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const { sendOTP, verifyOTP } = require("../config/otp");
 const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env");
